@@ -371,6 +371,10 @@ const sfx = {
     tone(130, 0.7, { type: "sine", volume: 0.42, slide: -70 });
     noise(0.65, { volume: 0.32, cutoff: 520 });
   },
+  slam() {
+    tone(68, 0.5, { type: "sine", volume: 0.5, slide: -28 });
+    noise(0.42, { volume: 0.42, cutoff: 520 });
+  },
   gate() {
     [660, 990].forEach((frequency, index) => tone(frequency, 0.11, { type: "triangle", volume: 0.18, delay: index * 0.08 }));
   },
@@ -527,6 +531,163 @@ const leavePage = () => {
   if (ui.root) ui.root.classList.remove("soar-game-ui--panel", "soar-game-ui--hud");
   hidePanel();
 };
+
+/* Page ⇄ world transition ---------------------------------------------------
+ * Entering the game: the visible page splits into 3D sheets (navbar, hero,
+ * sections, footer) that lift toward the viewer, then slam backward onto the
+ * ground and lie flat as the runway of the game scene before fading into it.
+ * Leaving the game plays the reverse: the floor stands back up into the page.
+ */
+const SLAM_MS = 1700;
+const SLAM_IMPACT = 0.68;
+const RISE_MS = 1100;
+let pageFlipping = false;
+
+const collectPagePieces = () => {
+  const viewportHeight = window.innerHeight;
+  const pieces = [];
+  const add = (element, depth) => {
+    if (!element) return;
+    const style = window.getComputedStyle(element);
+    if (style.display === "none" || style.visibility === "hidden") return;
+    const rect = element.getBoundingClientRect();
+    if (rect.width < 2 || rect.height < 2) return;
+    if (rect.bottom < 0 || rect.top > viewportHeight) {
+      pieces.push({ element, offscreen: true });
+      return;
+    }
+    pieces.push({ element, rect, depth });
+  };
+  const main = document.querySelector('body > .container[role="main"]');
+  const home = document.body.classList.contains("soar-page-home");
+  [...document.body.children].forEach((child) => {
+    if (child === host || child.classList.contains("soar-game-ui")) return;
+    if (["SCRIPT", "NOSCRIPT", "STYLE", "LINK", "TEMPLATE"].includes(child.tagName)) return;
+    // The header only wraps the fixed navbar; transforming it would detach the navbar from the viewport.
+    if (child.tagName === "HEADER") {
+      add(child.querySelector("#navbar"), 1);
+      return;
+    }
+    // On the homepage each section becomes its own sheet so they can separate in depth.
+    if (home && child === main) return;
+    add(child, child === main ? 0 : 1);
+  });
+  if (home && main) {
+    main.querySelectorAll("article > .clearfix > *, article > section, article > .social").forEach((element, index) => add(element, 1 + index));
+  }
+  return pieces;
+};
+
+// One rigid sheet: every piece rotates about the bottom edge of the viewport and is
+// projected with the same perspective centre, so the pieces move together.
+const sheetTransform = (rect, angle, pop = 0, lift = 0, scale = 1, turn = 0) => {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const perspective = Math.round(clamp(height * 1.15, 700, 1400));
+  const cx = width / 2 - rect.left;
+  const cy = height * 0.45 - rect.top;
+  const px = width / 2 - rect.left;
+  const py = height - rect.top;
+  return (
+    `translate(${cx}px, ${cy}px) perspective(${perspective}px) translate(${-cx}px, ${-cy}px) ` +
+    `translate(${px}px, ${py - lift}px) rotateX(${angle}deg) rotateY(${turn}deg) scale(${scale}) translate(${-px}px, ${-py}px) translateZ(${pop}px)`
+  );
+};
+
+const slamFrames = (piece) => {
+  const pop = 36 + piece.depth * 24;
+  const frame = (offset, angle, depth, lift, scale, opacity, easing, turn = 0) => ({
+    offset,
+    transform: sheetTransform(piece.rect, angle, depth, lift, scale, turn),
+    opacity,
+    easing,
+  });
+  return [
+    frame(0, 0, 0, 0, 1, 1, "cubic-bezier(.2,.75,.3,1)"),
+    frame(0.27, -9, pop, 28, 0.94, 1, "linear", -7),
+    frame(0.37, -7, pop * 1.1, 32, 0.94, 1, "cubic-bezier(.55,0,1,.45)", -5),
+    frame(SLAM_IMPACT, 87, 0, 0, 1, 1, "cubic-bezier(.25,.8,.45,1)"),
+    frame(0.74, 80, 0, 0, 1, 1, "cubic-bezier(.55,0,.85,.45)"),
+    frame(0.79, 87, 0, 0, 1, 1, "ease-in"),
+    frame(1, 87, 0, 0, 1, 0, "linear"),
+  ];
+};
+
+const riseFrames = (piece) => {
+  const frame = (offset, angle, depth, lift, scale, opacity, easing) => ({
+    offset,
+    transform: sheetTransform(piece.rect, angle, depth, lift, scale),
+    opacity,
+    easing,
+  });
+  return [
+    frame(0, 87, 0, 0, 1, 0, "ease-out"),
+    frame(0.2, 87, 0, 0, 1, 1, "cubic-bezier(.2,.7,.35,1)"),
+    frame(0.72, -5, 24, 12, 0.97, 1, "ease-in-out"),
+    frame(1, 0, 0, 0, 1, 1, "linear"),
+  ];
+};
+
+const animatePieces = (pieces, framesFor, duration) =>
+  pieces.map((piece) => {
+    const { element } = piece;
+    if (piece.offscreen) {
+      element.style.visibility = "hidden";
+      return null;
+    }
+    element.classList.add("soar-sheet");
+    element.style.transformOrigin = "0 0";
+    const viewportHeight = window.innerHeight;
+    if (piece.rect.height > viewportHeight * 1.2) {
+      // Tall pages: only the visible slice becomes the sheet.
+      const top = Math.max(0, -piece.rect.top);
+      const bottom = Math.max(0, piece.rect.bottom - viewportHeight);
+      element.style.clipPath = `inset(${top}px 0 ${bottom}px 0)`;
+    }
+    return element.animate(framesFor(piece), { duration, fill: "both" });
+  });
+
+const resetPieces = (pieces, animations) => {
+  animations.forEach((animation) => animation?.cancel());
+  pieces.forEach(({ element }) => {
+    element.classList.remove("soar-sheet");
+    element.style.removeProperty("transform-origin");
+    element.style.removeProperty("clip-path");
+    element.style.removeProperty("visibility");
+  });
+};
+
+const slamPage = (onImpact) =>
+  new Promise((resolve) => {
+    pageFlipping = true;
+    buildUI();
+    document.body.classList.add("soar-page-flipping");
+    const pieces = collectPagePieces();
+    const animations = animatePieces(pieces, slamFrames, SLAM_MS);
+    window.setTimeout(() => onImpact?.(), SLAM_MS * SLAM_IMPACT);
+    Promise.all(animations.map((animation) => animation?.finished.catch(() => null))).then(() => {
+      enterPage();
+      resetPieces(pieces, animations);
+      document.body.classList.remove("soar-page-flipping");
+      pageFlipping = false;
+      resolve();
+    });
+  });
+
+const risePage = () =>
+  new Promise((resolve) => {
+    pageFlipping = true;
+    document.body.classList.add("soar-page-flipping");
+    leavePage();
+    const pieces = collectPagePieces();
+    const animations = animatePieces(pieces, riseFrames, RISE_MS);
+    Promise.all(animations.map((animation) => animation?.finished.catch(() => null))).then(() => {
+      resetPieces(pieces, animations);
+      document.body.classList.remove("soar-page-flipping");
+      pageFlipping = false;
+      resolve();
+    });
+  });
 
 /* World ---------------------------------------------------------------------- */
 
@@ -2058,8 +2219,9 @@ function createWorld(THREE) {
   /* Mode transitions */
   const setLabelsVisible = (visible) => labels.forEach((label) => (label.visible = visible));
 
-  const openMenu = () => {
-    enterPage();
+  const openMenu = ({ deferUi = false } = {}) => {
+    buildUI();
+    if (!deferUi) enterPage();
     mode = "menu";
     clearField(true);
     resetGame();
@@ -2068,10 +2230,28 @@ function createWorld(THREE) {
     player.invuln = 0;
     robot.root.visible = true;
     ui.root.classList.remove("soar-game-ui--hud");
-    showPanel("menu", { stats: game.best ? `${TEXT.best} <strong>${game.best}</strong>` : "" });
+    if (!deferUi) revealMenu();
     if (ui.refs.boss) ui.refs.boss.hidden = true;
     setLabelsVisible(true);
     startLoop();
+  };
+
+  function revealMenu() {
+    enterPage();
+    showPanel("menu", { stats: game.best ? `${TEXT.best} <strong>${game.best}</strong>` : "" });
+  }
+
+  // The page sheet hits the ground: shake the camera and kick up dust along the runway.
+  const impact = () => {
+    shake = Math.max(shake, 1.15);
+    const dust = toColor(palette.grid);
+    const white = toColor("#ffffff");
+    for (let i = 0; i < 150; i += 1) {
+      const x = rand(-10, 10);
+      emit(x, 0.15, rand(-14, 6), x * 0.35 + rand(-1.5, 1.5), rand(1.5, 5.5), rand(-2, 2), rand(0.6, 1.2), rand(0.35, 0.85), i % 3 ? dust : white);
+    }
+    shockwave(tmp.set(camera.position.x, 0.4, camera.position.z - 7), palette.grid, 14, 0.7);
+    sfx.slam();
   };
 
   const startGame = () => {
@@ -2167,7 +2347,8 @@ function createWorld(THREE) {
     setForm("flight", true);
     robot.root.visible = true;
     setLabelsVisible(false);
-    leavePage();
+    if (reducedMotion) leavePage();
+    else risePage();
     if (!shouldAnimate()) {
       stopLoop();
       renderStill();
@@ -2893,7 +3074,7 @@ function createWorld(THREE) {
   };
 
   window.addEventListener("keydown", (event) => {
-    if (mode === "ambient") return;
+    if (mode === "ambient" || pageFlipping) return;
     const key = event.key;
     if (key === "Escape") {
       event.preventDefault();
@@ -3020,6 +3201,8 @@ function createWorld(THREE) {
 
   return {
     openMenu,
+    revealMenu,
+    impact,
     start: startGame,
     exit: exitGame,
   };
@@ -3045,20 +3228,36 @@ const loadWorld = () => {
   return worldPromise;
 };
 
+let opening = false;
+
 const openGame = async () => {
-  enterPage();
-  if (!worldApi) {
-    // The world registers its own handlers once it exists; until then Exit just restores the page.
+  if (opening || pageFlipping || document.body.classList.contains("soar-in-game")) return;
+  opening = true;
+  buildUI();
+  let world = worldApi;
+  if (!world) {
+    // Give three.js a moment; if it is still loading, show the loading panel instead of the slam.
+    world = await Promise.race([loadWorld(), new Promise((resolve) => window.setTimeout(() => resolve("slow"), 1800))]);
+  }
+  if (world === "slow") {
+    enterPage();
     ui.handlers.exit = () => leavePage();
     showPanel("loading");
+    world = await loadWorld();
+    if (world && document.body.classList.contains("soar-in-game")) world.openMenu();
+  } else if (world && !reducedMotion) {
+    world.openMenu({ deferUi: true });
+    await slamPage(() => world.impact());
+    world.revealMenu();
+  } else if (world) {
+    world.openMenu();
   }
-  const world = await loadWorld();
   if (!world) {
+    enterPage();
     ui.handlers.exit = () => leavePage();
     showPanel("error");
-    return;
   }
-  if (document.body.classList.contains("soar-in-game")) world.openMenu();
+  opening = false;
 };
 
 if (host) {

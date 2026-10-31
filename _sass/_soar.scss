@@ -2281,3 +2281,30 @@ html[data-theme="dark"] {
     white-space: nowrap;
   }
 }
+
+// Page ⇄ game transition (slamPage / risePage in soar-world.js).
+body.soar-page-flipping {
+  overflow: hidden;
+
+  .soar-world::after {
+    opacity: 0;
+  }
+
+  > *:not(.soar-world):not(.soar-game-ui) {
+    transition: none !important;
+    pointer-events: none;
+  }
+}
+
+.soar-sheet {
+  backface-visibility: hidden;
+  box-shadow: 0 70px 120px -60px rgba(4, 16, 27, 0.6) !important;
+  transition: none !important;
+  will-change: transform, opacity;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.soar-page-home .soar-sheet.soar-hero {
+  box-shadow: none !important;
+}
