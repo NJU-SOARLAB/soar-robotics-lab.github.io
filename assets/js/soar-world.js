@@ -19,6 +19,7 @@ const isHome = document.body.classList.contains("soar-page-home");
 const saveData = Boolean(navigator.connection && navigator.connection.saveData);
 const BEST_KEY = "soarlab-world-best";
 const SOUND_KEY = "soarlab-world-sound";
+const ROBOT_MODEL_URL = "/assets/models/soar-robot.glb?v=2026-10-31";
 
 const TEXT = isZh
   ? {
@@ -1124,26 +1125,28 @@ function createWorld(THREE) {
     flameCore: additive("#fff1c2", 0.95),
   };
 
+  // Rocket exhaust: a flame cone pointing down the parent's -Y axis, scaled per frame by poseRobot.
+  const flameGeometry = new THREE.ConeGeometry(1, 1, 16);
+  flameGeometry.rotateX(Math.PI);
+  flameGeometry.translate(0, -0.5, 0);
+  const makeJet = (width, length, parent, y) => {
+    const jet = new THREE.Group();
+    jet.position.y = y;
+    const outer = new THREE.Mesh(flameGeometry, robotMaterials.flame);
+    outer.scale.set(width, length, width);
+    const core = new THREE.Mesh(flameGeometry, robotMaterials.flameCore);
+    core.scale.set(width * 0.5, length * 0.62, width * 0.5);
+    const glow = makeGlow("#ff9a3c", width * 7, 0.55);
+    glow.position.y = -length * 0.25;
+    jet.add(outer, core, glow);
+    parent.add(jet);
+    return jet;
+  };
+
+  // Fallback robot built from primitives; replaced by the Blender model once it loads.
   const makeRobot = () => {
     const M = robotMaterials;
     const capsule = (radius, length, material) => new THREE.Mesh(new THREE.CapsuleGeometry(radius, length, 4, 12), material);
-    const flameGeometry = new THREE.ConeGeometry(1, 1, 12);
-    flameGeometry.rotateX(Math.PI);
-    flameGeometry.translate(0, -0.5, 0);
-
-    const makeJet = (width, length, parent, y) => {
-      const jet = new THREE.Group();
-      jet.position.y = y;
-      const outer = new THREE.Mesh(flameGeometry, M.flame);
-      outer.scale.set(width, length, width);
-      const core = new THREE.Mesh(flameGeometry, M.flameCore);
-      core.scale.set(width * 0.5, length * 0.62, width * 0.5);
-      const glow = makeGlow("#ff9a3c", width * 7, 0.55);
-      glow.position.y = -length * 0.25;
-      jet.add(outer, core, glow);
-      parent.add(jet);
-      return jet;
-    };
 
     const root = new THREE.Group();
     const body = new THREE.Group();
@@ -1275,7 +1278,71 @@ function createWorld(THREE) {
     return { root, body, torso, head, wings, arms, legs, packJets, shield, shadow };
   };
 
-  const robot = makeRobot();
+  let robot = makeRobot();
+  // Keep the fallback out of view while the detailed model loads.
+  scene.remove(robot.root);
+  let robotModelReady = false;
+  const showFallbackRobot = () => {
+    if (!robotModelReady && !robot.root.parent) scene.add(robot.root);
+  };
+  const fallbackTimer = window.setTimeout(showFallbackRobot, 3000);
+
+  // Detailed SOAR rocket robot, modelled in Blender (_scripts/blender/soar_robot.py).
+  // Its joints are named nodes, so the same poses drive it as the fallback robot.
+  const loadRobotModel = async () => {
+    const [{ GLTFLoader }, { RoomEnvironment }] = await Promise.all([import("./three/GLTFLoader.js"), import("./three/RoomEnvironment.js")]);
+    const gltf = await new GLTFLoader().loadAsync(ROBOT_MODEL_URL);
+    const model = gltf.scene;
+    const node = (name) => {
+      const found = model.getObjectByName(name);
+      if (!found) throw new Error(`SOAR model is missing node ${name}`);
+      return found;
+    };
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const reflections = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    pmrem.dispose();
+    model.traverse((child) => {
+      if (!child.isMesh) return;
+      child.material.envMap = reflections;
+      child.material.envMapIntensity = 0.9;
+    });
+    const root = new THREE.Group();
+    root.add(model);
+    const next = {
+      root,
+      body: node("body"),
+      torso: node("torso"),
+      head: node("head"),
+      arms: [
+        { shoulder: node("shoulder_R"), elbow: node("elbow_R"), side: 1 },
+        { shoulder: node("shoulder_L"), elbow: node("elbow_L"), side: -1 },
+      ],
+      legs: [
+        { hip: node("hip_R"), knee: node("knee_R"), jet: makeJet(0.1, 0.64, node("bootJet_R"), 0), side: 1 },
+        { hip: node("hip_L"), knee: node("knee_L"), jet: makeJet(0.1, 0.64, node("bootJet_L"), 0), side: -1 },
+      ],
+      wings: [
+        { pivot: node("wing_R"), side: 1 },
+        { pivot: node("wing_L"), side: -1 },
+      ],
+      packJets: [makeJet(0.075, 0.55, node("packJet_R"), 0), makeJet(0.075, 0.55, node("packJet_L"), 0)],
+      shield: robot.shield,
+      shadow: robot.shadow,
+    };
+    root.add(next.shield);
+    root.position.copy(robot.root.position);
+    root.rotation.copy(robot.root.rotation);
+    scene.remove(robot.root);
+    scene.add(root);
+    robot = next;
+    robotModelReady = true;
+    window.clearTimeout(fallbackTimer);
+    if (!running) renderStill();
+  };
+  loadRobotModel().catch((error) => {
+    console.warn("SOAR robot model unavailable, using the built-in robot:", error);
+    showFallbackRobot();
+  });
 
   const poseRobot = (t) => {
     const f = player.flight;
@@ -2891,20 +2958,20 @@ function createWorld(THREE) {
     if (mode === "ambient") {
       const scroll = clamp(window.scrollY / Math.max(1, window.innerHeight), 0, 1.6);
       const orbit = Math.sin(time * 0.06) * 0.42;
-      const distance = isHome ? 7.6 : 10.5;
+      const distance = isHome ? 6.6 : 10.5;
       tmp.set(p.x + Math.sin(orbit) * distance, p.y + 2.2 + scroll * 2.6, p.z + Math.cos(orbit) * distance);
       tmp2.set(p.x * 0.6, p.y + 0.6 - scroll * 0.9, p.z - 8);
       if (isHome && wide) shiftX = 0.2;
       else if (isHome) shiftY = window.innerWidth < 576 ? 0.3 : 0.24;
       rate = 1.6;
     } else if (mode === "menu" || mode === "over") {
-      tmp.set(p.x + 1.3, p.y + 0.75, p.z + (portrait ? 8.4 : 6.2));
-      tmp2.set(p.x - 0.35, p.y + 0.35, p.z);
+      tmp.set(p.x + 1.0, p.y + 0.5, p.z + (portrait ? 6.8 : 4.7));
+      tmp2.set(p.x - 0.3, p.y + 0.12, p.z);
       if (window.innerWidth >= 768) shiftX = 0.2;
       else shiftY = -0.2;
       rate = 2.6;
     } else {
-      tmp.set(p.x * 0.55, p.y * 0.5 + (portrait ? 3.8 : 3.1), portrait ? 11.5 : 9.2);
+      tmp.set(p.x * 0.55, p.y * 0.5 + (portrait ? 3.4 : 2.75), portrait ? 10.2 : 8.1);
       tmp2.set(p.x * 0.78, p.y * 0.72 + 0.7, -16);
       if (portrait) fov = 66;
       rate = 6;
@@ -3017,7 +3084,8 @@ function createWorld(THREE) {
     if (mode === "ambient" && elapsed < 1 / 32) return;
     lastTime = now;
     if (mode === "paused") return;
-    const dt = Math.min(elapsed, 1 / 20);
+    // rAF timestamps can precede the performance.now() taken in startLoop, so clamp at zero.
+    const dt = clamp(elapsed, 0, 1 / 20);
     update(dt);
     renderer.render(scene, camera);
 
