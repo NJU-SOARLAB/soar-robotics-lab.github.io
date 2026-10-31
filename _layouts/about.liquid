@@ -3,79 +3,62 @@ layout: default
 ---
 {% assign current_lang = page.lang | default: site.default_lang | default: 'zh' %}
 {% if current_lang == 'en' %}
-  {% assign news_title = 'news' %}
+  {% assign news_kicker = 'Latest' %}
+  {% assign news_title = 'News' %}
   {% assign news_url = '/news/' %}
-  {% assign selected_papers_title = 'selected publications' %}
+  {% assign news_more = 'All news' %}
+  {% assign selected_papers_kicker = 'Research' %}
+  {% assign selected_papers_title = 'Selected Publications' %}
   {% assign selected_papers_url = '/publications/' %}
+  {% assign selected_papers_more = 'All publications' %}
   {% assign contact_note = 'Prospective students should include a CV, WeChat ID, and a concise research statement in the application email.' %}
 {% else %}
+  {% assign news_kicker = 'Latest' %}
   {% assign news_title = '新闻' %}
   {% assign news_url = '/zh/news/' %}
+  {% assign news_more = '全部新闻' %}
+  {% assign selected_papers_kicker = 'Research' %}
   {% assign selected_papers_title = '代表论文' %}
   {% assign selected_papers_url = '/zh/publications/' %}
+  {% assign selected_papers_more = '全部论文' %}
   {% assign contact_note = '申请同学请在邮件中附上简历、微信号和简要研究设想。' %}
 {% endif %}
-<div class="post">
-  <header class="post-header">
-    <h1 class="post-title">
-      {% if site.title == 'blank' %}
-        <span class="font-weight-bold">{{ site.first_name }}</span> {{ site.middle_name }}
-        {{ site.last_name }}
-      {% else %}
-        {{ site.title }}
-      {% endif %}
-    </h1>
-    <p class="desc">{{ page.subtitle }}</p>
-  </header>
-
+<div class="post soar-home">
   <article>
-    {% if page.profile %}
-      <div class="profile float-{% if page.profile.align == 'left' %}left{% else %}right{% endif %}">
-        {% if page.profile.image %}
-          {% assign profile_image_path = page.profile.image | prepend: 'assets/img/' %}
-          {% if page.profile.image_circular %}
-            {% assign profile_image_class = 'img-fluid z-depth-1 rounded-circle' %}
-          {% else %}
-            {% assign profile_image_class = 'img-fluid z-depth-1
-      rounded' %}
-          {% endif %}
-          {% capture sizes %}(min-width: {{ site.max_width }}) {{ site.max_width | minus: 30 | times: 0.3}}px, (min-width: 576px)
-      30vw, 95vw"{% endcapture %}
-          {%
-            include figure.liquid loading="eager" path=profile_image_path class=profile_image_class sizes=sizes alt=page.profile.image
-            cache_bust=true
-          %}
-        {% endif %}
-        {% if page.profile.more_info %}
-          <div class="more-info">{{ page.profile.more_info }}</div>
-        {% endif %}
-      </div>
-    {% endif %}
-
     <div class="clearfix">{{ content }}</div>
 
     <!-- News -->
     {% if page.announcements and page.announcements.enabled %}
-      <h2>
-        <a href="{{ news_url | relative_url }}" style="color: inherit">{{ news_title }}</a>
-      </h2>
-      {% include news.liquid limit=true %}
+      <section class="soar-section" id="news">
+        <header class="soar-section__head">
+          <p class="soar-kicker">{{ news_kicker }}</p>
+          <h2>{{ news_title }}</h2>
+          <a class="soar-section__more" href="{{ news_url | relative_url }}">{{ news_more }} →</a>
+        </header>
+        {% include news.liquid limit=true %}
+      </section>
     {% endif %}
 
     <!-- Latest posts -->
     {% if page.latest_posts and page.latest_posts.enabled %}
-      <h2>
-        <a href="{{ '/blog/' | relative_url }}" style="color: inherit">latest posts</a>
-      </h2>
-      {% include latest_posts.liquid %}
+      <section class="soar-section">
+        <header class="soar-section__head">
+          <h2><a href="{{ '/blog/' | relative_url }}">latest posts</a></h2>
+        </header>
+        {% include latest_posts.liquid %}
+      </section>
     {% endif %}
 
     <!-- Selected papers -->
     {% if page.selected_papers %}
-      <h2>
-        <a href="{{ selected_papers_url | relative_url }}" style="color: inherit">{{ selected_papers_title }}</a>
-      </h2>
-      {% include selected_papers.liquid %}
+      <section class="soar-section" id="selected-publications">
+        <header class="soar-section__head">
+          <p class="soar-kicker">{{ selected_papers_kicker }}</p>
+          <h2>{{ selected_papers_title }}</h2>
+          <a class="soar-section__more" href="{{ selected_papers_url | relative_url }}">{{ selected_papers_more }} →</a>
+        </header>
+        {% include selected_papers.liquid %}
+      </section>
     {% endif %}
 
     <!-- Social -->

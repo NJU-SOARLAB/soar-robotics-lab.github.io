@@ -16,7 +16,10 @@
   </head>
 
   <!-- Body -->
-  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %}">
+  <body class="{% if site.navbar_fixed %}fixed-top-nav{% endif %} {% unless site.footer_fixed %}sticky-bottom-footer{% endunless %} {% if page.layout == 'about' %}soar-page-home{% else %}soar-page-inner{% endif %}">
+    <!-- SOARLAB 3D world: page background and playable mini game (assets/js/soar-world.js) -->
+    <div id="soar-world" class="soar-world" aria-hidden="true"></div>
+
     <!-- Header -->
     {% include header.liquid %}
 
