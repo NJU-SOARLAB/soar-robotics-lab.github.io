@@ -131,11 +131,6 @@ ninja.data = [{
           description: "Agent-oriented perception, world models, planning, control, and simulation.",
           section: "Projects",handler: () => {
               window.location.href = "/projects/robotics-agent/";
-            },},{id: "projects-tisa",
-          title: 'TISA',
-          description: "Terrain- and intent-aware shared autonomy for humanoid teleoperation.",
-          section: "Projects",handler: () => {
-              window.location.href = "/projects/tisa/";
             },},{id: "projects-wam-vla-robot-foundation-models",
           title: 'WAM/VLA Robot Foundation Models',
           description: "World-action and vision-language-action models for real robots.",
