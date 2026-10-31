@@ -18,7 +18,7 @@ function determineGiscusTheme() {
 
   let giscusAttributes = {
     src: "https://giscus.app/client.js",
-    "data-repo": "SOAR-Robotics-Lab/soar-robotics-lab.github.io",
+    "data-repo": "NJU-SOARLAB/soar-robotics-lab.github.io",
     "data-repo-id": "",
     "data-category": "Comments",
     "data-category-id": "",
