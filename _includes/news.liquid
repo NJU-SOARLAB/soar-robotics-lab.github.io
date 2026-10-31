@@ -1,33 +1,66 @@
-<div class="news">
+{% assign news_lang = page.lang | default: site.default_lang | default: 'zh' %}
+<div class="news soar-news">
   {% if site.news != blank %}
-    {% assign news_size = site.news | size %}
-    <div
-      class="table-responsive"
-      {% if include.limit and page.announcements.scrollable and news_size > 3 %}
-        style="max-height: 60vw"
-      {% endif %}
-    >
-      <table class="table table-sm table-borderless">
-        {% assign news = site.news | reverse %}
-        {% if include.limit and page.announcements.limit %}
-          {% assign news_limit = page.announcements.limit %}
+    {% assign news = site.news | reverse %}
+    {% assign news_size = news | size %}
+    {% if include.limit and page.announcements.limit %}
+      {% assign news_limit = page.announcements.limit %}
+    {% else %}
+      {% assign news_limit = news_size %}
+    {% endif %}
+    <ol class="soar-news__list">
+      {% for item in news limit: news_limit %}
+        {% assign news_tag = item.tag | default: 'update' %}
+        {% if news_lang == 'en' %}
+          {% case news_tag %}
+            {% when 'award' -%}
+              {%- assign news_tag_label = 'Award' %}
+            {% when 'paper' -%}
+              {%- assign news_tag_label = 'Paper' %}
+            {% when 'admissions' -%}
+              {%- assign news_tag_label = 'Admissions' %}
+            {% when 'lab' -%}
+              {%- assign news_tag_label = 'Lab' %}
+            {% else -%}
+              {%- assign news_tag_label = 'Update' %}
+          {% endcase %}
         {% else %}
-          {% assign news_limit = news_size %}
+          {% case news_tag %}
+            {% when 'award' -%}
+              {%- assign news_tag_label = '获奖' %}
+            {% when 'paper' -%}
+              {%- assign news_tag_label = '论文' %}
+            {% when 'admissions' -%}
+              {%- assign news_tag_label = '招生' %}
+            {% when 'lab' -%}
+              {%- assign news_tag_label = '课题组' %}
+            {% else -%}
+              {%- assign news_tag_label = '动态' %}
+          {% endcase %}
         {% endif %}
-        {% for item in news limit: news_limit %}
-          <tr>
-            <th scope="row" style="width: 20%">{{ item.date | date: '%b %d, %Y' }}</th>
-            <td>
-              {% if item.inline %}
-                {{ item.content | remove: '<p>' | remove: '</p>' | emojify }}
-              {% else %}
-                <a class="news-title" href="{{ item.url | relative_url }}">{{ item.title }}</a>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </table>
-    </div>
+        <li class="soar-news__item soar-news__item--{{ news_tag }}">
+          <div class="soar-news__meta">
+            <time datetime="{{ item.date | date_to_xmlschema }}">
+              {%- if news_lang == 'en' -%}
+                {{ item.date | date: '%b %d, %Y' }}
+              {%- else -%}
+                {{ item.date | date: '%Y.%m.%d' }}
+              {%- endif -%}
+            </time>
+            <span class="soar-news__tag">{{ news_tag_label }}</span>
+          </div>
+          <div class="soar-news__body">
+            {% if news_lang == 'en' and item.en %}
+              {{ item.en | markdownify | remove: '<p>' | remove: '</p>' }}
+            {% elsif item.inline %}
+              {{ item.content | remove: '<p>' | remove: '</p>' | emojify }}
+            {% else %}
+              <a class="news-title" href="{{ item.url | relative_url }}">{{ item.title }}</a>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
   {% else %}
     <p>No news so far...</p>
   {% endif %}

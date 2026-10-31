@@ -9,6 +9,11 @@ lang: en
 translation_url: /zh/recruiting/
 ---
 
+<div class="soar-notice" role="note">
+  <strong>Note for international applicants</strong>
+  <p>SOARLAB is currently not eligible to admit international students, so we are unable to accept applications from international students at this time.</p>
+</div>
+
 SOARLAB is recruiting direct Ph.D., regular Ph.D., and master's students from the 2027 cohort who are interested in embodied intelligence, robotics, and core algorithms. The lab will be led independently by Hao Xu at the School of Intelligent Science and Technology, Nanjing University.
 
 ## Research Lines and Platforms
