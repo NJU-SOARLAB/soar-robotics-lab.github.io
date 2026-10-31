@@ -34,7 +34,7 @@ latest_posts:
       <a class="btn soar-btn soar-btn--primary" href="{{ '/recruiting/' | relative_url }}">2027 Admissions</a>
       <button class="btn soar-btn soar-btn--play" type="button" data-soar-play>Fly the SOAR robot</button>
       <a class="btn soar-btn" href="{{ '/publications/' | relative_url }}">Publications</a>
-      <a class="btn soar-btn" href="https://github.com/SOAR-Robotics-Lab" rel="external nofollow noopener" target="_blank">GitHub</a>
+      <a class="btn soar-btn" href="https://github.com/NJU-SOARLAB" rel="external nofollow noopener" target="_blank">GitHub</a>
       <a class="btn soar-btn" href="https://scholar.google.com.hk/citations?user=XF_6HvcAAAAJ&hl=en" rel="external nofollow noopener" target="_blank">Google Scholar</a>
       <button class="btn soar-btn soar-share-button" type="button">Share QR</button>
     </div>

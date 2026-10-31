@@ -15,21 +15,36 @@ translation_url: /open-source/
     <p class="soar-eyebrow">Open systems for flying general intelligence</p>
     <h1>开源项目</h1>
     <p>SOARLAB 坚持把可复现系统、真实机器人平台和研究工具开源出来。这里汇总实验室新项目以及与代表论文对应的代码、项目主页和硬件平台。</p>
-    <p><a class="btn btn-primary" href="https://github.com/SOAR-Robotics-Lab" rel="external nofollow noopener" target="_blank">访问 SOARLAB GitHub</a></p>
+    <p><a class="btn btn-primary" href="https://github.com/NJU-SOARLAB" rel="external nofollow noopener" target="_blank">访问 SOARLAB GitHub</a></p>
   </div>
 </div>
 
 ## 实验室项目
 
 <div class="soar-open-grid">
-  <article class="soar-open-card soar-open-card--featured">
+  <article class="soar-open-card">
+    <p class="soar-open-card__tag">SOARLAB · 人形机器人 · 开源</p>
+    <img class="soar-open-card__image" src="{{ '/assets/img/publication_preview/echo-g.jpg' | relative_url }}" alt="ECHO-G overview: speech and text conditioning, dataset, benchmark, and real-robot execution">
+    <h3>ECHO-G</h3>
+    <p class="soar-live-stars" data-github-repo="NJU-SOARLAB/ECHO-G" data-star-label="stars" data-star-fallback="★ stars unavailable">Loading stars...</p>
+    <p>让人形机器人说话时手舞足蹈、踩准节拍：从语音和带时间戳的文本直接生成 Unitree G1 全身动作，端到端全身控制，可在 Jetson Orin AGX 上运行。代码、数据集与模型权重均已开源。</p>
+    <div class="soar-open-card__links">
+      <a href="https://github.com/NJU-SOARLAB/ECHO-G" rel="external nofollow noopener" target="_blank">GitHub</a>
+      <a href="https://echo-g-project.github.io/" rel="external nofollow noopener" target="_blank">Project</a>
+      <a href="https://arxiv.org/abs/2609.39575" rel="external nofollow noopener" target="_blank">Paper</a>
+      <a href="https://www.bilibili.com/video/BV1dJHi6DELp/" rel="external nofollow noopener" target="_blank">Video</a>
+      <a href="https://huggingface.co/gaopusen/ECHO-G" rel="external nofollow noopener" target="_blank">Models</a>
+    </div>
+  </article>
+
+  <article class="soar-open-card">
     <p class="soar-open-card__tag">SOARLAB · Agent Tooling</p>
     <img class="soar-open-card__image" src="{{ '/assets/img/publication_preview/openprism.jpg' | relative_url }}" alt="OpenPrism architecture preview">
     <h3>OpenPrism</h3>
-    <p class="soar-live-stars" data-github-repo="SOAR-Robotics-Lab/OpenPrism" data-star-label="stars" data-star-fallback="★ stars unavailable">Loading stars...</p>
+    <p class="soar-live-stars" data-github-repo="NJU-SOARLAB/OpenPrism" data-star-label="stars" data-star-fallback="★ stars unavailable">Loading stars...</p>
     <p>面向 OpenCode 生态的多层级绘图插件，把 Mermaid 结构图、Matplotlib 论文级可视化、Plotly.js 交互图表和 AIGC 图像生成带到 AI coding agent 工作流中。</p>
     <div class="soar-open-card__links">
-      <a href="https://github.com/SOAR-Robotics-Lab/OpenPrism" rel="external nofollow noopener" target="_blank">GitHub</a>
+      <a href="https://github.com/NJU-SOARLAB/OpenPrism" rel="external nofollow noopener" target="_blank">GitHub</a>
     </div>
   </article>
 </div>
@@ -45,16 +60,6 @@ translation_url: /open-source/
     <div class="soar-open-card__links">
       <a href="https://fegkkd.github.io/IROS2026AUG/" rel="external nofollow noopener" target="_blank">Project</a>
       <a href="{{ '/publications/#feng2026aug' | relative_url }}">Paper</a>
-    </div>
-  </article>
-
-  <article class="soar-open-card">
-    <p class="soar-open-card__tag">人形机器人遥操作</p>
-    <img class="soar-open-card__image" src="https://ytr-zhang.github.io/TISA/resources/images/deployment_montage.jpg" alt="TISA humanoid teleoperation deployment montage">
-    <h3>TISA</h3>
-    <p>面向人形机器人遥操作的地形与意图感知共享自治系统。TISA 在预测安全时保留全身直接控制，并在高风险地形接触附近委托可执行意图。</p>
-    <div class="soar-open-card__links">
-      <a href="https://ytr-zhang.github.io/TISA/" rel="external nofollow noopener" target="_blank">Project</a>
     </div>
   </article>
 

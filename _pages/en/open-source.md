@@ -15,21 +15,36 @@ translation_url: /zh/open-source/
     <p class="soar-eyebrow">Open systems for flying general intelligence</p>
     <h1>Open Source</h1>
     <p>SOARLAB releases reproducible systems, real-robot platforms, and research tools. This page collects new lab projects and code/project pages connected to representative publications.</p>
-    <p><a class="btn btn-primary" href="https://github.com/SOAR-Robotics-Lab" rel="external nofollow noopener" target="_blank">Visit SOARLAB GitHub</a></p>
+    <p><a class="btn btn-primary" href="https://github.com/NJU-SOARLAB" rel="external nofollow noopener" target="_blank">Visit SOARLAB GitHub</a></p>
   </div>
 </div>
 
 ## Lab Projects
 
 <div class="soar-open-grid">
-  <article class="soar-open-card soar-open-card--featured">
+  <article class="soar-open-card">
+    <p class="soar-open-card__tag">SOARLAB · Humanoid · Open Source</p>
+    <img class="soar-open-card__image" src="{{ '/assets/img/publication_preview/echo-g.jpg' | relative_url }}" alt="ECHO-G overview: speech and text conditioning, dataset, benchmark, and real-robot execution">
+    <h3>ECHO-G</h3>
+    <p class="soar-live-stars" data-github-repo="NJU-SOARLAB/ECHO-G" data-star-label="stars" data-star-fallback="★ stars unavailable">Stars loading...</p>
+    <p>Co-speech whole-body gestures for humanoids: ECHO-G generates Unitree G1 motion directly from speech audio and word-timed transcripts, with end-to-end whole-body control that runs on a Jetson Orin AGX. Code, dataset, and model weights are released.</p>
+    <div class="soar-open-card__links">
+      <a href="https://github.com/NJU-SOARLAB/ECHO-G" rel="external nofollow noopener" target="_blank">GitHub</a>
+      <a href="https://echo-g-project.github.io/" rel="external nofollow noopener" target="_blank">Project</a>
+      <a href="https://arxiv.org/abs/2609.39575" rel="external nofollow noopener" target="_blank">Paper</a>
+      <a href="https://www.bilibili.com/video/BV1dJHi6DELp/" rel="external nofollow noopener" target="_blank">Video</a>
+      <a href="https://huggingface.co/gaopusen/ECHO-G" rel="external nofollow noopener" target="_blank">Models</a>
+    </div>
+  </article>
+
+  <article class="soar-open-card">
     <p class="soar-open-card__tag">SOARLAB · Agent Tooling</p>
     <img class="soar-open-card__image" src="{{ '/assets/img/publication_preview/openprism.jpg' | relative_url }}" alt="OpenPrism architecture preview">
     <h3>OpenPrism</h3>
-    <p class="soar-live-stars" data-github-repo="SOAR-Robotics-Lab/OpenPrism" data-star-label="stars" data-star-fallback="★ stars unavailable">Stars loading...</p>
+    <p class="soar-live-stars" data-github-repo="NJU-SOARLAB/OpenPrism" data-star-label="stars" data-star-fallback="★ stars unavailable">Stars loading...</p>
     <p>A multi-tier drawing plugin for the OpenCode ecosystem, bringing Mermaid diagrams, Matplotlib publication-quality plots, Plotly.js interactive charts, and AIGC image generation into AI coding-agent workflows.</p>
     <div class="soar-open-card__links">
-      <a href="https://github.com/SOAR-Robotics-Lab/OpenPrism" rel="external nofollow noopener" target="_blank">GitHub</a>
+      <a href="https://github.com/NJU-SOARLAB/OpenPrism" rel="external nofollow noopener" target="_blank">GitHub</a>
     </div>
   </article>
 </div>
@@ -45,16 +60,6 @@ translation_url: /zh/open-source/
     <div class="soar-open-card__links">
       <a href="https://fegkkd.github.io/IROS2026AUG/" rel="external nofollow noopener" target="_blank">Project</a>
       <a href="{{ '/publications/#feng2026aug' | relative_url }}">Paper</a>
-    </div>
-  </article>
-
-  <article class="soar-open-card">
-    <p class="soar-open-card__tag">Humanoid Teleoperation</p>
-    <img class="soar-open-card__image" src="https://ytr-zhang.github.io/TISA/resources/images/deployment_montage.jpg" alt="TISA humanoid teleoperation deployment montage">
-    <h3>TISA</h3>
-    <p>Terrain- and intent-aware shared autonomy for humanoid teleoperation. TISA preserves direct whole-body authority when predicted safe and delegates executable intent near risky terrain contacts.</p>
-    <div class="soar-open-card__links">
-      <a href="https://ytr-zhang.github.io/TISA/" rel="external nofollow noopener" target="_blank">Project</a>
     </div>
   </article>
 

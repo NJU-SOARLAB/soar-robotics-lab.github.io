@@ -2,7 +2,8 @@ github_users:
   - xuhao1
 
 github_repos:
-  - SOAR-Robotics-Lab/OpenPrism
+  - NJU-SOARLAB/ECHO-G
+  - NJU-SOARLAB/OpenPrism
   - HKUST-Aerial-Robotics/D2SLAM
   - HKUST-Aerial-Robotics/Omni-swarm
   - HKUST-Aerial-Robotics/OmniNxt
